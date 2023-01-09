@@ -1,0 +1,98 @@
+﻿@{
+    ViewData["Title"] = "Privacy Policy";
+}
+<h1>@ViewData["Title"]</h1>
+<script src="~/js/jquery3.6.3.js"></script>
+<script type="text/javascript">
+    var t;
+    $(function () {
+        t = $('#tblindex').DataTable({
+            dom: 'Bfrtip',
+            buttons: [
+                'excelHtml5',
+                {
+                    extend: 'pdfHtml5',
+                    orientation: 'landscape',
+                    pageSize: 'LEGAL',
+                },
+            ],
+        });
+        ViewIndexDetails();
+    });
+    function ViewIndexDetails() {
+        var action="";
+        var sno=0;
+        $.ajax({
+            type: 'GET',
+            url: '/api/Home/IndexDetails',
+            data: '{}',
+            contentType: 'application/json; charset=utf-8',
+            dataType: 'json',
+            async: false,
+            success: function (response) {
+                if(response!=null) {
+                t.clear();
+                $.each(response, function (key, value) {
+                        sno=sno+1;
+                        action = "<input type='button' id='edit' class='btn btn-primary' value='Edit' onclick='return EditDetails(" + value.id + ")'/>&nbsp;<input type='button' id='delete' class='btn btn-danger' value='Delete' onclick='return DeleteDetails(" + value.id + ")'/>"
+                        t.row.add([
+                            "<td><span>" + sno + "</span></td>",
+                            "<td><span>" + value.name + "</span></td>",
+                            "<td><span>" + value.date + "</span></td>",
+                            "<td><span>" + value.mobileNo + "</span></td>",
+                            "<td>" + action + "</td>"
+                        ]).draw(false);
+                });
+                $("#indexbody").append(t);
+                }
+                else {
+                    $('#tblindex').dataTable().fnClearTable();
+                }
+            }
+        });
+    }
+    function EditDetails(id) {
+        window.open("/Home/Index?id=" + id, "_newtab");
+    }
+    function DeleteDetails(id) {
+        if(confirm("Are you sure want to delete?")==true) {
+            $.ajax({
+                type: 'GET',
+                url: '/api/Home/DeleteDetails?Id=' + id,
+                data: '{}',
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                async: false,
+                success: function (response) {
+                    if(response[0].result=="Success") {
+                        alert("Data Deleted Successfully");
+                        ViewIndexDetails();
+                    }
+                    else {
+                        alert("Something wrong check it");
+                        return false;
+                    }
+                }
+            });
+        }
+        else {
+            return false;
+        }
+    }
+</script>
+<div class="container">
+    <div class="col-md-12">
+        <table id="tblindex" class="table-bordered">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Name</th>
+                    <th>Date</th>
+                    <th>Mobile No</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="indexbody"></tbody>
+        </table>
+    </div>
+</div>

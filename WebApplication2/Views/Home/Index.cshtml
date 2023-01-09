@@ -1,0 +1,112 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+<script src="~/js/jquery3.6.3.js"></script>
+<script type="text/javascript">
+    var id=0;
+    $(function () {
+        $('#TxtName').focus();
+         const params = new URLSearchParams(window.location.search)
+         for (const param of params) {
+              id = param[1].trim();
+         }
+         if(id!=0) {
+             $('#BtnSave').val('Update');
+             ViewDetailsbyId(id);
+         }
+         else {
+            $('#BtnSave').val('Save');
+         }
+    });
+    function Clear() {
+        $('#TxtName').val("");
+        $('#TxtDate').val("");
+        $('#TxtMobileNo').val("");
+        $('#TxtName').focus();
+    }
+    function Save() {
+        var model=[];
+        var data={};
+        data.Id=id;
+        data.Name = $('#TxtName').val();
+        data.Date = $('#TxtDate').val();
+        data.MobileNo = $('#TxtMobileNo').val();
+        model.push(data);
+        var collectdata = JSON.stringify(model);
+        $.ajax({
+            type: 'POST',
+            url: '/api/Home/Save',
+            data: collectdata,
+            contentType: 'application/json; charset=utf-8',
+            dataType: 'json',
+            async: false,
+            success: function (response) {
+                if(response[0].result=="Success") {
+                    if(id==0) {
+                       alert("Data Saved Successfully");
+                       Clear();
+                    }
+                    else {
+                       alert("Data Updated Successfully");
+                    }
+                }
+                else {
+                    alert("Something wrong check it");
+                    return false;
+                }
+            }
+        });
+    }
+    function isNumber(e) {
+        var keycode = e.which ? e.which : e.keycode;
+        if ((keycode >= 48 && keycode <= 57) || (keycode == 45) || (keycode == 46)) {
+            return true;
+        }
+        return false;
+    }
+    function MobileNoValidate() {
+        if ($('#TxtMobileNo').val().length<10) {
+            alert("Mobile No Enter 10 Digits Only");
+            return false;
+        }
+    }
+    function ViewDetailsbyId(id) {
+        $.ajax({
+            type: 'GET',
+            url: '/api/Home/ViewDetailsbyId?Id=' + id,
+            data: '{}',
+            contentType: 'application/json; charset=utf-8',
+            dataType: 'json',
+            async: false,
+            success: function (response) {
+                if(response!=null) {
+                    $('#TxtName').val(response[0].name);
+                    $('#TxtDate').val(response[0].date);
+                    $('#TxtMobileNo').val(response[0].mobileNo);
+                }
+            }
+        });
+    }
+</script>
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+</div>
+<div class="container">
+    <div class="col-md-12">
+        <div class="col-md-4">
+            <label>Name</label>
+            <input type="text" class="form-control" id="TxtName" />
+        </div>
+        <div class="col-md-4">
+            <label>Date</label>
+            <input type="date" class="form-control" id="TxtDate" />
+        </div>
+        <div class="col-md-4">
+            <label>Mobile No</label>
+            <input type="text" class="form-control" id="TxtMobileNo" maxlength="10" onkeypress="return isNumber(event)" />
+        </div>
+    </div>
+    <input type="submit" id="BtnSave" value="Save" class="btn btn-primary" onclick="return Save()" />
+    <input type="button" id="BtnClear" value="Clear" class="btn btn-warning" onclick="return Clear()" />
+</div>
